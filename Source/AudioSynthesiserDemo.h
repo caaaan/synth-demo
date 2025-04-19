@@ -415,12 +415,23 @@ private:
     LiveScrollingAudioDisplay& display;
 };
 
+struct MidiLogger  : public MidiInputCallback
+{
+    void handleIncomingMidiMessage (MidiInput* /*source*/,
+                                    const MidiMessage& m) override
+    {
+        DBG ("MIDI Received: " << m.getDescription());
+    }
+};
+
 //==============================================================================
 class AudioSynthesiserDemo final : public Component
 {
 public:
     AudioSynthesiserDemo()
     {
+        
+        
         addAndMakeVisible (keyboardComponent);
         addAndMakeVisible (cutoffSlider);
             cutoffSlider.setRange (20.0, 20000.0);
@@ -516,6 +527,24 @@ public:
        #ifndef JUCE_DEMO_RUNNER
         audioDeviceManager.initialise (0, 2, nullptr, true, {}, nullptr);
        #endif
+        
+        // 1) Build the list of available MIDI inputs
+        auto devices = MidiInput::getAvailableDevices();
+        int id = 1;
+        for (auto& d : devices)
+            midiInputList.addItem (d.name, id++);
+        midiInputList.setSelectedId (1);
+
+        
+        midiInputList.onChange = [this] { setMidiInputDevice(); };
+
+      
+        addAndMakeVisible (midiInputList);
+        midiInputList.setBounds (400, 420, 200, 24);  // adjust to suit your layout
+
+        // 4) Open the default device immediately
+        setMidiInputDevice();
+
 
         audioDeviceManager.addAudioCallback (&callback);
         audioDeviceManager.addMidiInputDeviceCallback ({}, &(synthAudioSource.midiCollector));
@@ -554,6 +583,31 @@ public:
 
 
     }
+    void setMidiInputDevice()
+    {
+        auto devices = MidiInput::getAvailableDevices();
+        int idx = midiInputList.getSelectedId() - 1;
+        if (idx < 0 || idx >= devices.size())
+            return;
+
+        auto newID = devices[idx].identifier;
+        audioDeviceManager.addMidiInputDeviceCallback (newID, &midiLogger);
+
+        // 1) Disable the previous port
+        if (currentMidiInput.isNotEmpty())
+            audioDeviceManager.setMidiInputDeviceEnabled (currentMidiInput, false);
+
+        audioDeviceManager.removeMidiInputDeviceCallback (currentMidiInput,
+                                                          &synthAudioSource.midiCollector);
+
+        // 2) Enable & register the new port
+        audioDeviceManager.setMidiInputDeviceEnabled (newID, true);
+        audioDeviceManager.addMidiInputDeviceCallback    (newID,
+                                                          &synthAudioSource.midiCollector);
+
+        currentMidiInput = newID;
+    }
+
 
 private:
     // if this PIP is running inside the demo runner, we'll use the shared device manager instead
@@ -583,6 +637,12 @@ private:
     Slider decaySlider;
     Slider sustainSlider;
     Slider releaseSlider;
+    ComboBox midiInputList;
+    String   currentMidiInput;
+    MidiLogger midiLogger;  // as a member alongside midiInputList
+
+   
+
     
     void updateWaveType()
     {
