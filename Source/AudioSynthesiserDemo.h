@@ -441,7 +441,7 @@ public:
 
             // Add and configure the resonance slider
             addAndMakeVisible (resonanceSlider);
-            resonanceSlider.setRange (0.1, 10.0);
+            resonanceSlider.setRange (0.1, 40.0);
             resonanceSlider.setValue (0.7);
             resonanceSlider.onValueChange = [this] { synthAudioSource.updateFilterCoefficients(cutoffSlider.getValue(), resonanceSlider.getValue()); };
         addAndMakeVisible (sineButton);
@@ -470,7 +470,7 @@ public:
         waveTypeSelector.setSelectedId(1);
 
         addAndMakeVisible(attackSlider);
-               attackSlider.setRange(0.1f, 0.5f); // Range from 10ms to 5 seconds
+               attackSlider.setRange(0.1f,5.0f); // Range from 10ms to 5 seconds
                attackSlider.setValue(0.1f); // Default to 100ms
                attackSlider.setSliderStyle(Slider::LinearVertical);
                attackSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
@@ -510,7 +510,7 @@ public:
 
 
                addAndMakeVisible(releaseSlider);
-               releaseSlider.setRange(0.1f, 5.0f); // Range from 10ms to 5 seconds
+               releaseSlider.setRange(0.1f, 10.0f); // Range from 10ms to 5 seconds
                releaseSlider.setValue(0.8f); // Default to 200ms
                releaseSlider.setSliderStyle(Slider::LinearVertical);
                releaseSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
@@ -551,6 +551,8 @@ public:
 
         setOpaque (true);
         setSize (640, 480);
+        
+        
     }
 
     ~AudioSynthesiserDemo() override
@@ -640,8 +642,12 @@ private:
     ComboBox midiInputList;
     String   currentMidiInput;
     MidiLogger midiLogger;  // as a member alongside midiInputList
-
-   
+    juce::AudioDeviceManager deviceManager; // [1]
+    juce::Label midiInputListLabel;
+    int lastInputIndex = 0; // [3]
+    bool isAddingFromMidiInput = false; // [4]
+    juce::TextEditor midiMessagesBox;
+    double startTime;
 
     
     void updateWaveType()
