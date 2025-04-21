@@ -141,7 +141,7 @@ public:
          else
          {
              clearCurrentNote();
-             adsr.reset(); // Reset the ADSR envelope
+             //adsr.reset(); // Reset the ADSR envelope
          }
     }
 
@@ -184,8 +184,9 @@ public:
 
                 for (auto i = outputBuffer.getNumChannels(); --i >= 0;)
                 {
-                    outputBuffer.addSample(i, startSample, adsr.getNextSample() * currentSample);
                     adsr.applyEnvelopeToBuffer(outputBuffer, startSample, adsr.getNextSample() * currentSample);
+                    outputBuffer.addSample(i, startSample, adsr.getNextSample() * currentSample);
+                    
                 }
 
                 currentAngle += angleDelta;
@@ -476,10 +477,13 @@ public:
                attackSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         attackSlider.onValueChange = [this]
         {
-            if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(0)))
-            {
-                voice->setAttack(attackSlider.getValue());
+            for (int i = 0; i < synthAudioSource.synth.getNumVoices(); ++i){
+                if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(i)))
+                {
+                    voice->setAttack(attackSlider.getValue());
+                }
             }
+            
         };
 
                addAndMakeVisible(decaySlider);
@@ -489,10 +493,14 @@ public:
                decaySlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         decaySlider.onValueChange = [this]
         {
-            if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(0)))
-            {
-                voice->setDecay(decaySlider.getValue());
+            for (int i = 0; i < synthAudioSource.synth.getNumVoices(); ++i){
+                if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(i)))
+                {
+                    voice->setDecay(decaySlider.getValue());
+                }
+                
             }
+            
         };
 
                addAndMakeVisible(sustainSlider);
@@ -502,10 +510,13 @@ public:
                sustainSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         sustainSlider.onValueChange = [this]
         {
-            if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(0)))
-            {
-                voice->setSustain(sustainSlider.getValue());
+            for (int i = 0; i < synthAudioSource.synth.getNumVoices(); ++i){
+                if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(i)))
+                            {
+                                voice->setSustain(sustainSlider.getValue());
+                            }
             }
+            
         };
 
 
@@ -516,10 +527,13 @@ public:
                releaseSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         releaseSlider.onValueChange = [this]
         {
-            if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(0)))
-            {
-                voice->setRelease(releaseSlider.getValue());
+            for (int i = 0; i < synthAudioSource.synth.getNumVoices(); ++i){
+                if (auto* voice = dynamic_cast<SineWaveVoice*>(synthAudioSource.synth.getVoice(i)))
+                            {
+                                voice->setRelease(releaseSlider.getValue());
+                            }
             }
+            
         };
 
     
